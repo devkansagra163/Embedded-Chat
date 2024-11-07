@@ -17,9 +17,23 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           PR_NUMBER=$(echo "${{ github.event.workflow_run.pull_requests[0].number }}")
-          APPROVALS=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
-            "https://api.github.com/repos/${{ github.repository }}/pulls/$PR_NUMBER/reviews" | \
-            jq '[.[] | select(.state == "APPROVED" and (.user.type == "User"))] | length')
+
+          if [ -z "$PR_NUMBER" ]; then
+            echo "Error: PR number is empty. Exiting."
+            exit 1
+          fi
+
+          RESPONSE=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+            "https://api.github.com/repos/${{ github.repository }}/pulls/$PR_NUMBER/reviews")
+
+          if ! echo "$RESPONSE" | jq . > /dev/null 2>&1; then
+            echo "Error: Invalid JSON response from GitHub API."
+            exit 1
+          fi
+
+          APPROVALS=$(echo "$RESPONSE" | jq '[.[] | select(.state == "APPROVED" and (.user.type == "User"))] | length')
+          echo "Approvals found: $APPROVALS"
+
           if [ "$APPROVALS" -eq 0 ]; then
             echo "No valid approval found. Exiting."
             exit 1
