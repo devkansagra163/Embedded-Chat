@@ -10,14 +10,23 @@ permissions:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
-    if:
-      github.repository == 'devanshkansagra/Embedded-Chat' && github.event.workflow_run.conclusion == 'success' &&
-      github.event.workflow_run.event == 'pull_request_review' &&
-      (github.event.workflow_run.pull_requests[0].user.association == 'COLLABORATOR' || github.event.workflow_run.pull_requests[0].user.association == 'OWNER')
-
     steps:
+      - name: Check PR Approval Status
+        id: approval_check
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR_NUMBER=$(echo "${{ github.event.workflow_run.pull_requests[0].number }}")
+          APPROVALS=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+            "https://api.github.com/repos/${{ github.repository }}/pulls/$PR_NUMBER/reviews" | \
+            jq '[.[] | select(.state == "APPROVED" and (.user.type == "User"))] | length')
+          if [ "$APPROVALS" -eq 0 ]; then
+            echo "No valid approval found. Exiting."
+            exit 1
+          fi
+
       - uses: actions/download-artifact@v4
+        if: success()
         with:
           name: github-pages
           path: build/
@@ -26,6 +35,7 @@ jobs:
           run-id: ${{github.event.workflow_run.id}}
 
       - name: Deploy to GitHub Pages
+        if: success()
         uses: crazy-max/ghaction-github-pages@v2
         with:
           target_branch: gh-deploy
