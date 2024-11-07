@@ -11,12 +11,18 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
+      - name: Download PR Number Artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: pr-number
+          path: .
+
       - name: Check PR Approval Status
         id: approval_check
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          PR_NUMBER=$(echo "${{ github.event.workflow_run.pull_requests[0].number }}")
+          PR_NUMBER=$$(cat pr_number.txt)
 
           if [ -z "$PR_NUMBER" ]; then
             echo "Error: PR number is empty. Exiting."
