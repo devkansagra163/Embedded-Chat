@@ -25,7 +25,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          PR_NUMBER=$$(cat pr_number.txt)
+          PR_NUMBER=$(cat pr_number.txt)
 
           if [ -z "$PR_NUMBER" ]; then
             echo "Error: PR number is empty. Exiting."
