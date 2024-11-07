@@ -16,6 +16,9 @@ jobs:
         with:
           name: pr-number
           path: .
+          github-token: ${{github.token}}
+          repository: ${{github.repository}}
+          run-id: ${{github.event.workflow_run.id}}
 
       - name: Check PR Approval Status
         id: approval_check
