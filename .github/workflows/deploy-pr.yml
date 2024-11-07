@@ -27,11 +27,6 @@ jobs:
         run: |
           PR_NUMBER=$(cat pr_number.txt)
 
-          if [ -z "$PR_NUMBER" ]; then
-            echo "Error: PR number is empty. Exiting."
-            exit 1
-          fi
-
           RESPONSE=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
             "https://api.github.com/repos/${{ github.repository }}/pulls/$PR_NUMBER/reviews")
 
@@ -40,11 +35,16 @@ jobs:
             exit 1
           fi
 
-          APPROVALS=$(echo "$RESPONSE" | jq '[.[] | select(.state == "APPROVED" and (.user.type == "User"))] | length')
-          echo "Approvals found: $APPROVALS"
+          LATEST_REVIEW=$(echo "$RESPONSE" | jq 'sort_by(.submitted_at) | last')
 
-          if [ "$APPROVALS" -eq 0 ]; then
-            echo "No valid approval found. Exiting."
+          STATE=$(echo "$LATEST_REVIEW" | jq -r '.state')
+          AUTHOR_ASSOCIATION=$(echo "$LATEST_REVIEW" | jq -r '.author_association')
+
+          echo "Latest review state: $STATE"
+          echo "Author association: $AUTHOR_ASSOCIATION"
+
+          if [ "$STATE" != "APPROVED" ] || { [ "$AUTHOR_ASSOCIATION" != "COLLABORATOR" ] && [ "$AUTHOR_ASSOCIATION" != "OWNER" ]; }; then
+            echo "The latest review is not an approved review from a collaborator or owner. Exiting."
             exit 1
           fi
 
