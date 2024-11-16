@@ -46,7 +46,7 @@ jobs:
         working-directory: packages/docs/
 
       - name: Get user Ref
-        run: echo ${{github.event.workflow_run.head_repository.owner.login}}
+        run: echo ${{ github.event.pull_request.head.ref }}
 
       - name: Prepare Build Folder
         run: |
