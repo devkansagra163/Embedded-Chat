@@ -45,6 +45,9 @@ jobs:
         run: yarn build
         working-directory: packages/docs/
 
+      - name: Get user Ref
+        run: echo ${{github.event.workflow_run.head_repository.owner.login}}
+
       - name: Prepare Build Folder
         run: |
           mkdir -p build/pulls/pr-${{github.event.pull_request.number}}/
