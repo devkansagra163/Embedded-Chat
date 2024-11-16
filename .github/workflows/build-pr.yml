@@ -21,6 +21,15 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
+      - name: Get user
+        run: echo "${{ github.event.pull_request.head.repo.owner.login }}" > user.txt
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: user
+          path: user.txt
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -44,9 +53,6 @@ jobs:
       - name: Build Docs
         run: yarn build
         working-directory: packages/docs/
-
-      - name: Get user Ref
-        run: echo ${{ github.event.pull_request.head.repo.owner.login }}
 
       - name: Prepare Build Folder
         run: |
