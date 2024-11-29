@@ -34,7 +34,7 @@ const ChatInput = () => {
           <Input
             textArea
             rows={1}
-            placeholder="Message"
+            placeholder="Message in layout_editor"
             css={styles.textInput}
             onBlur={handleBlur}
             onFocus={handleFocus}
